@@ -64,6 +64,20 @@ body {
   margin-top: 0;
   color: #005fa3;
 }
+.edit-button {
+  background-color: #f0ad4e;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 5px;
+  font-size: 1rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background 0.2s;
+}       
+.edit-button:hover {
+  background-color: #ec971f;
+}   
 .navbar {
   text-align: center;
   margin-bottom: 30px;
