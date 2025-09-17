@@ -29,7 +29,7 @@ _Add screenshots of homepage, compose form, post view, and edit form here._
 - Debugging control flow and rendering issues
 
 ##  Installation
-```bash
+``bash
 npm install
 node index.js
 
@@ -48,6 +48,6 @@ node index.js
 **Fidel Niyidukunda**  
 Founder of Del IT+Web  
 Krugersdorp, South Africa  
-[GitHub Profile](https://github.com/YOUR_USERNAME)
+[GitHub Profile](https://github.com/niyidukunda)
 
 
