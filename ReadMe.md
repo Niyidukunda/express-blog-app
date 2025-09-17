@@ -32,3 +32,22 @@ _Add screenshots of homepage, compose form, post view, and edit form here._
 ```bash
 npm install
 node index.js
+
+---
+
+## What’s Next
+
+- Add persistent storage (MongoDB or SQLite)
+- Deploy the app publicly (Render or Vercel)
+- Add user authentication and protected routes
+- Refactor routes and add basic tests
+- Document the learning journey in a public journal
+
+##  Author
+
+**Fidel Niyidukunda**  
+Founder of Del IT+Web  
+Krugersdorp, South Africa  
+[GitHub Profile](https://github.com/YOUR_USERNAME)
+
+
