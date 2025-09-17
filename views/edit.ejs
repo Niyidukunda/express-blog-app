@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Posts</title>
+    <link rel="stylesheet" href="/styles/main.css">
+</head>
+<body>
+    <%- include("partials/header") %>
+
+    <% if (typeof post !== 'undefined' && post) { %>
+      <form action="/posts/<%= post.id %>/edit" method="POST" class="post-card">
+        <h2>Edit Post</h2>
+        <input type="text" name="title" value="<%= post.title %>" required>
+        <textarea name="body" rows="6" required><%= post.body %></textarea>
+        <button type="submit">Update</button>
+      </form>
+    <% } else { %>
+      <div class="post-card">
+        <h2>Post not found</h2>
+        <p>The post you are trying to edit does not exist.</p>
+      </div>
+    <% } %>
+
+    <%- include("partials/footer") %>
+</body>
+</html>

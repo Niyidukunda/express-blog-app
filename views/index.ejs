@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Blog</title>
+    <link rel="stylesheet" href="/styles/main.css">
+</head>
+<body>
+    <%- include("partials/header") %>
+    
+        <a class="compose-button compose-link " href="/compose">Compose a new post</a>
+        <% if (posts.length === 0) { %>
+            <p>No posts yet!</p> <a class="compose-button" href="/compose">Create one!</a>
+        <% } else { %>
+            <% posts.forEach(function(post) { %>
+            <div class="post-card">
+                <a href="/posts/<%= post.id %>"><h2><%= post.title %></h2></a>
+                <p><%= post.body %></p>
+                <hr>
+            </div>
+            <% }); %>
+        <% } %>
+
+   
+
+
+
+
+
+ <%- include("partials/footer") %>
+
+
+</body>
+</html>

@@ -1,0 +1,79 @@
+.compose-button {
+  display: inline-block;
+  padding: 10px 20px;
+  background-color: #0077cc;
+  color: white;
+  text-decoration: none;
+  border-radius: 5px;
+  font-weight: bold;
+  padding-bottom: 10px;
+}
+.compose-button:hover {
+  background-color: #005fa3;
+}
+
+.compose-link {
+  margin-bottom: 30px;
+  display: inline-block;
+}
+
+
+body {
+  font-family: 'Segoe UI', sans-serif;
+  margin: 0 auto;
+  max-width: 800px;
+  padding: 20px;
+  line-height: 1.6;
+  background-color: #fafafa;
+  color: #333;
+}
+  
+.post-card {
+  background-color: white;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 15px;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+.post-card input[type="text"],
+.post-card textarea {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 12px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 1rem;
+  box-sizing: border-box;
+}
+.post-card button[type="submit"] {
+  background-color: #0077cc;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  font-size: 1rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.post-card button[type="submit"]:hover {
+  background-color: #005fa3;
+}
+.post-card h2,p {
+  margin-top: 0;
+  color: #005fa3;
+}
+.navbar {
+  text-align: center;
+  margin-bottom: 30px;
+}
+.navbar a {
+  margin: 0 10px;
+  color: #0077cc;
+  text-decoration: none;
+  font-weight: bold;
+}
+.navbar a:hover {
+  text-decoration: underline;
+}
