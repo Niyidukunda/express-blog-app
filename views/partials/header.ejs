@@ -1,9 +1,22 @@
   <div class="navbar    ">
     <a href="/">Home</a>
-    <a href="/compose">Compose</a>
+    <a href="/compose">Reflect</a>
   </div>
+  
+  <!-- Database Connection Status Notification -->
+  <% if (typeof isMongoConnected !== 'undefined' && !isMongoConnected) { %>
+    <div class="alert alert-warning" style="background-color: #fff3cd; border: 1px solid #ffeaa7; color: #856404; padding: 12px; margin: 10px 0; border-radius: 5px; text-align: center;">
+      <strong>⚠️ Notice:</strong> Database temporarily unavailable. Using temporary storage - your posts will not be saved permanently.
+    </div>
+  <% } else if (typeof isMongoConnected !== 'undefined' && isMongoConnected) { %>
+    <div class="alert alert-success" style="background-color: #d4edda; border: 1px solid #c3e6cb; color: #155724; padding: 12px; margin: 10px 0; border-radius: 5px; text-align: center;">
+      <strong>✅ Connected:</strong> Database is online - your posts are being saved permanently.
+    </div>
+  <% } %>
+  
   <div class="hero " >
-    <h1>Welcome to Krugersdorp Daily</h1>
-    <p>Stories that matter. Voices that resonate.</p>
+    <h1>Purpose & Perspective</h1>
+    <p>Reflections from the journey of living with intention</p>
+    <small style="color: #666; font-style: italic;">Personal insights on life, growth, and finding meaning</small>
   </div>
   <hr>

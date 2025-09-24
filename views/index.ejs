@@ -3,19 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>The Blog</title>
+    <title>Purpose & Perspective - Fidel's Reflections</title>
     <link rel="stylesheet" href="/styles/main.css">
 </head>
 <body>
     <%- include("partials/header") %>
     
-        <a class="compose-button compose-link " href="/compose">Compose a new post</a>
+        <a class="compose-button compose-link " href="/compose">New Reflection</a>
         <% if (posts.length === 0) { %>
-            <p>No posts yet!</p> <a class="compose-button" href="/compose">Create one!</a>
+            <p>No reflections yet!</p> <a class="compose-button" href="/compose">Share your first thought</a>
         <% } else { %>
             <% posts.forEach(function(post) { %>
             <div class="post-card">
-                <a href="/posts/<%= post.id %>"><h2><%= post.title %></h2></a>
+                <a href="/posts/<%= post._id %>"><h2><%= post.title %></h2></a>
                 <p><%= post.body %></p>
                 <hr>
             </div>

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Posts</title>
+    <title><%= post.title %> - Purpose & Perspective</title>
     <link rel="stylesheet" href="/styles/main.css"> 
     
 </head>
@@ -13,10 +13,10 @@
 <div class="post-card">
   <h2><%= post.title %></h2>
   <p><%= post.body %></p>
-  <a href="/posts/<%= post.id %>/edit">
+  <a href="/posts/<%= post._id %>/edit">
   <button class="edit-button">Edit</button>
 </a>
-  <form action="/posts/<%= post.id %>/delete" method="POST" style="display:inline;">
+  <form action="/posts/<%= post._id %>/delete" method="POST" style="display:inline;">
     <button type="submit">Delete</button>
   </form> 
 

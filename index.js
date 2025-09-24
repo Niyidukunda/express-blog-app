@@ -1,90 +1,260 @@
-
 import express from "express";
 import { dirname } from "path";
 import { fileURLToPath } from "url";
 import bodyParser from "body-parser";
-import {v4 as uuidv4} from "uuid";
-// delete post route
-
+import { v4 as uuidv4 } from "uuid";
+import mongoose from "mongoose";
+import Post from "./models/Post.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const app = express();
 const port = 3000;
-const posts = [];
 
+// Middleware
 app.use(express.static("public"));
-//using body-parser to get data from the form
 app.use(bodyParser.urlencoded({ extended: true }));
-app.set("view engine", "ejs");  
+app.set("view engine", "ejs");
 app.set("views", "./views");
 
-//home route
-app.get("/", (req, res) => {
-  res.render("index.ejs",{posts:posts});
+// MongoDB Atlas connection with graceful fallback and auto-reconnection
+let isMongoConnected = false;
+let fallbackPosts = []; // Fallback in-memory storage
+let reconnectAttempts = 0;
+const maxReconnectAttempts = 5;
+const reconnectInterval = 30000; // 30 seconds
 
-});   
+// MongoDB connection function with retry logic
+async function connectToMongoDB() {
+  try {
+    await mongoose.connect(
+      "mongodb+srv://finiyid:finiyidi@cluster0.iw3oa.mongodb.net/blogDB?retryWrites=true&w=majority&appName=Cluster0"
+    );
+    console.log("✅ Connected to MongoDB Atlas");
+    isMongoConnected = true;
+    reconnectAttempts = 0; // Reset counter on successful connection
+  } catch (err) {
+    console.error("❌ MongoDB connection failed:", err.message);
+    isMongoConnected = false;
+    
+    if (reconnectAttempts < maxReconnectAttempts) {
+      reconnectAttempts++;
+      console.log(`🔄 Reconnection attempt ${reconnectAttempts}/${maxReconnectAttempts} in ${reconnectInterval/1000} seconds...`);
+      setTimeout(connectToMongoDB, reconnectInterval);
+    } else {
+      console.log("� Max reconnection attempts reached. Running with in-memory storage.");
+      console.log("Note: Data will not persist between server restarts");
+      console.log("To fix MongoDB connection, please check:");
+      console.log("1. Your IP address is whitelisted in MongoDB Atlas");
+      console.log("2. Your network allows connections to MongoDB Atlas");
+      console.log("3. Your username and password are correct");
+    }
+  }
+}
 
-//creating a compose route for new blog posts
+// Initial connection attempt
+connectToMongoDB();
+
+mongoose.connection.on("disconnected", () => {
+  console.log("⚠️ MongoDB disconnected. Switching to fallback storage...");
+  isMongoConnected = false;
+  
+  // Attempt to reconnect if we haven't exceeded max attempts
+  if (reconnectAttempts < maxReconnectAttempts) {
+    setTimeout(connectToMongoDB, reconnectInterval);
+  }
+});
+
+mongoose.connection.on("error", (err) => {
+  console.error("❌ MongoDB connection error:", err.message);
+  isMongoConnected = false;
+});
+
+// Periodic health check to attempt reconnection every 5 minutes
+setInterval(async () => {
+  if (!isMongoConnected && mongoose.connection.readyState === 0) {
+    console.log("🔍 Performing periodic MongoDB connection health check...");
+    reconnectAttempts = 0; // Reset attempts for periodic checks
+    await connectToMongoDB();
+  }
+}, 300000); // 5 minutes = 300,000 milliseconds
+
+// Routes
+app.get("/", async (req, res) => {
+  try {
+    if (isMongoConnected) {
+      const posts = await Post.find().sort({ createdAt: -1 });
+      res.render("index.ejs", { posts, isMongoConnected });
+    } else {
+      // Use fallback storage
+      const sortedPosts = fallbackPosts.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+      res.render("index.ejs", { posts: sortedPosts, isMongoConnected });
+    }
+  } catch (err) {
+    console.error("Error fetching posts:", err);
+    // Fallback to in-memory storage on error
+    const sortedPosts = fallbackPosts.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    res.render("index.ejs", { posts: sortedPosts, isMongoConnected: false });
+  }
+});
+
 app.get("/compose", (req, res) => {
-  res.render("compose.ejs");
+
+  res.render("compose.ejs", { isMongoConnected });
 });
 
-
-app.post("/compose", (req, res) => {
-  const postTitle = req.body.postTitle;
-  const postBody = req.body.postBody;
-    //adding unique id to each post 
-  const id = uuidv4();
-  const post = {title: postTitle, body: postBody, id: id};  
-  //pushing the new post to the posts array   
-
-
-  // for in-memory storage
-  posts.push(post); 
-    //redirecting to home route after submitting the form   np 
-  res.redirect("/");
-});    
-
-app.get("/posts/:id", (req, res) => {
-  const requestedPostId = req.params.id; 
-  const post = posts.find(p => p.id === requestedPostId);
-  if (post) {
-    res.render("posts.ejs", { post });
-  } else {
-    res.status(404).send("Post not found");
-  } 
-});
-//edit post route
-app.get("/posts/:id/edit", (req, res) => {
-  const post = posts.find(p => p.id === req.params.id);
-  if (post) {
-    res.render("edit.ejs", { post });
-  } else {
-    res.status(404).send("Post not found");
-  }
-});
-//update post route
-app.post("/posts/:id/edit", (req, res) => {
-  const post = posts.find(p => p.id === req.params.id);
-  if (post) {
-    post.title = req.body.title;
-    post.body = req.body.body;
-    res.redirect(`/posts/${post.id}`);
-  } else {
-    res.status(404).send("Post not found");
-  }
-}); 
-
-app.post("/posts/:id/delete", (req, res) => {
-  const postIndex = posts.findIndex(p => p.id === req.params.id);
-  if (postIndex !== -1) {
-    posts.splice(postIndex, 1);
+app.post("/compose", async (req, res) => {
+  const { postTitle, postBody } = req.body;
+  try {
+    if (isMongoConnected) {
+      const newPost = new Post({ title: postTitle, body: postBody });
+      await newPost.save();
+    } else {
+      // Use fallback storage
+      const id = uuidv4();
+      const post = { _id: id, title: postTitle, body: postBody, createdAt: new Date() };
+      fallbackPosts.push(post);
+    }
     res.redirect("/");
-  } else {
-    res.status(404).send("Post not found");
+  } catch (err) {
+    console.error("Error saving post:", err);
+    // Fallback to in-memory storage on error
+    const id = uuidv4();
+    const post = { _id: id, title: postTitle, body: postBody, createdAt: new Date() };
+    fallbackPosts.push(post);
+    res.redirect("/");
+  }
+});
+
+app.get("/posts/:id", async (req, res) => {
+  try {
+    if (isMongoConnected) {
+      const post = await Post.findById(req.params.id);
+      if (post) {
+        res.render("posts.ejs", { post, isMongoConnected });
+      } else {
+        res.status(404).send("Post not found");
+      }
+    } else {
+      // Use fallback storage
+      const post = fallbackPosts.find(p => p._id === req.params.id);
+      if (post) {
+        res.render("posts.ejs", { post, isMongoConnected });
+      } else {
+        res.status(404).send("Post not found");
+      }
+    }
+  } catch (err) {
+    console.error("Error finding post:", err);
+    // Fallback to in-memory storage on error
+    const post = fallbackPosts.find(p => p._id === req.params.id);
+    if (post) {
+      res.render("posts.ejs", { post, isMongoConnected: false });
+    } else {
+      res.status(404).send("Post not found");
+    }
+  }
+});
+
+app.get("/posts/:id/edit", async (req, res) => {
+  try {
+    if (isMongoConnected) {
+      const post = await Post.findById(req.params.id);
+      if (post) {
+        res.render("edit.ejs", { post, isMongoConnected });
+      } else {
+        res.status(404).send("Post not found");
+      }
+    } else {
+      // Use fallback storage
+      const post = fallbackPosts.find(p => p._id === req.params.id);
+      if (post) {
+        res.render("edit.ejs", { post, isMongoConnected });
+      } else {
+        res.status(404).send("Post not found");
+      }
+    }
+  } catch (err) {
+    console.error("Error fetching post for edit:", err);
+    // Fallback to in-memory storage on error
+    const post = fallbackPosts.find(p => p._id === req.params.id);
+    if (post) {
+      res.render("edit.ejs", { post, isMongoConnected: false });
+    } else {
+      res.status(404).send("Post not found");
+    }
+  }
+});
+
+app.post("/posts/:id/edit", async (req, res) => {
+  try {
+    if (isMongoConnected) {
+      const updatedPost = await Post.findByIdAndUpdate(
+        req.params.id,
+        { title: req.body.title, body: req.body.body },
+        { new: true }
+      );
+      if (updatedPost) {
+        res.redirect(`/posts/${updatedPost._id}`);
+      } else {
+        res.status(404).send("Post not found");
+      }
+    } else {
+      // Use fallback storage
+      const postIndex = fallbackPosts.findIndex(p => p._id === req.params.id);
+      if (postIndex !== -1) {
+        fallbackPosts[postIndex].title = req.body.title;
+        fallbackPosts[postIndex].body = req.body.body;
+        res.redirect(`/posts/${fallbackPosts[postIndex]._id}`);
+      } else {
+        res.status(404).send("Post not found");
+      }
+    }
+  } catch (err) {
+    console.error("Error updating post:", err);
+    // Fallback to in-memory storage on error
+    const postIndex = fallbackPosts.findIndex(p => p._id === req.params.id);
+    if (postIndex !== -1) {
+      fallbackPosts[postIndex].title = req.body.title;
+      fallbackPosts[postIndex].body = req.body.body;
+      res.redirect(`/posts/${fallbackPosts[postIndex]._id}`);
+    } else {
+      res.status(404).send("Post not found");
+    }
+  }
+});
+
+app.post("/posts/:id/delete", async (req, res) => {
+  try {
+    if (isMongoConnected) {
+      const deletedPost = await Post.findByIdAndDelete(req.params.id);
+      if (deletedPost) {
+        res.redirect("/");
+      } else {
+        res.status(404).send("Post not found");
+      }
+    } else {
+      // Use fallback storage
+      const postIndex = fallbackPosts.findIndex(p => p._id === req.params.id);
+      if (postIndex !== -1) {
+        fallbackPosts.splice(postIndex, 1);
+        res.redirect("/");
+      } else {
+        res.status(404).send("Post not found");
+      }
+    }
+  } catch (err) {
+    console.error("Error deleting post:", err);
+    // Fallback to in-memory storage on error
+    const postIndex = fallbackPosts.findIndex(p => p._id === req.params.id);
+    if (postIndex !== -1) {
+      fallbackPosts.splice(postIndex, 1);
+      res.redirect("/");
+    } else {
+      res.status(404).send("Post not found");
+    }
   }
 });
 
 app.listen(port, () => {
-  console.log(`Server running on port ${port}`);
-}); 
+  console.log(`🚀 Server running on http://localhost:${port}`);
+});

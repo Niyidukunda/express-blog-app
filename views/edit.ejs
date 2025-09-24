@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Edit Posts</title>
+    <title>Edit Reflection - Purpose & Perspective</title>
     <link rel="stylesheet" href="/styles/main.css">
 </head>
 <body>
     <%- include("partials/header") %>
 
     <% if (typeof post !== 'undefined' && post) { %>
-      <form action="/posts/<%= post.id %>/edit" method="POST" class="post-card">
+      <form action="/posts/<%= post._id %>/edit" method="POST" class="post-card">
         <h2>Edit Post</h2>
         <input type="text" name="title" value="<%= post.title %>" required>
         <textarea name="body" rows="6" required><%= post.body %></textarea>
