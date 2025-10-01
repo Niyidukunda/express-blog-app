@@ -4,11 +4,15 @@ import { fileURLToPath } from "url";
 import bodyParser from "body-parser";
 import { v4 as uuidv4 } from "uuid";
 import mongoose from "mongoose";
+import dotenv from "dotenv";
 import Post from "./models/Post.js";
+
+// Load environment variables
+dotenv.config();
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const app = express();
-const port = 3000;
+const port = process.env.PORT || 3000;
 
 // Middleware
 app.use(express.static("public"));
@@ -26,9 +30,13 @@ const reconnectInterval = 30000; // 30 seconds
 // MongoDB connection function with retry logic
 async function connectToMongoDB() {
   try {
-    await mongoose.connect(
-      "mongodb+srv://finiyid:finiyidi@cluster0.iw3oa.mongodb.net/blogDB?retryWrites=true&w=majority&appName=Cluster0"
-    );
+    const mongoURI = process.env.MONGODB_URI;
+    
+    if (!mongoURI) {
+      throw new Error("MONGODB_URI environment variable is not set");
+    }
+    
+    await mongoose.connect(mongoURI);
     console.log("✅ Connected to MongoDB Atlas");
     isMongoConnected = true;
     reconnectAttempts = 0; // Reset counter on successful connection
