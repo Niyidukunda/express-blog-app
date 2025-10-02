@@ -10,12 +10,87 @@
     <%- include("partials/header") %>
 
     <% if (typeof post !== 'undefined' && post) { %>
-      <form action="/posts/<%= post._id %>/edit" method="POST" class="post-card">
-        <h2>Edit Post</h2>
-        <input type="text" name="title" value="<%= post.title %>" required>
-        <textarea name="body" rows="6" required><%= post.body %></textarea>
-        <button type="submit">Update</button>
+      <form action="/posts/<%= post._id %>/edit" method="POST" enctype="multipart/form-data" class="post-card compose-form">
+        <h2>✏️ Edit Reflection</h2>
+        
+        <!-- Title -->
+        <div class="form-group">
+            <label for="title">Title</label>
+            <input type="text" id="title" name="title" value="<%= post.title %>" required>
+        </div>
+
+        <!-- Category -->
+        <div class="form-group">
+            <label for="category">Category</label>
+            <input type="text" id="category" name="category" 
+                   placeholder="Select or create a category..." 
+                   value="<%= post.category || 'Daily Reflections' %>">
+            <small class="form-hint">💡 Type to create a new category</small>
+        </div>
+
+        <!-- Current Image Display -->
+        <% if (post.featuredImage) { %>
+        <div class="form-group">
+            <label>Current Image:</label>
+            <div class="current-image">
+                <img src="<%= post.featuredImage %>" alt="Current featured image" style="max-width: 200px; max-height: 150px; object-fit: cover; border-radius: 8px;">
+            </div>
+        </div>
+        <% } %>
+
+        <!-- Image Options -->
+        <div class="form-group">
+            <label>Featured Image (Optional)</label>
+            <div class="image-options">
+                <div class="option-buttons">
+                    <button type="button" class="option-btn active" data-option="url">🔗 Image URL</button>
+                    <button type="button" class="option-btn" data-option="upload">📁 Upload File</button>
+                </div>
+                
+                <div class="image-input url-input">
+                    <input type="url" id="featuredImage" name="featuredImage" 
+                           placeholder="https://example.com/image.jpg" 
+                           value="<%= post.featuredImage && !post.featuredImage.startsWith('/uploads/') ? post.featuredImage : '' %>">
+                    <small class="form-hint">🖼️ Enter an image URL</small>
+                </div>
+                
+                <div class="image-input upload-input" style="display: none;">
+                    <input type="file" id="imageFile" name="imageFile" accept="image/*">
+                    <small class="form-hint">📎 Choose an image file (max 5MB)</small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Content -->
+        <div class="form-group">
+            <label for="body">Content</label>
+            <textarea id="body" name="body" rows="8" placeholder="Share your thoughts..." required><%= post.body %></textarea>
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" class="submit-button">💾 Update Reflection</button>
+            <a href="/posts/<%= post._id %>" class="cancel-button">Cancel</a>
+        </div>
       </form>
+
+      <script>
+        // Image option toggle functionality
+        document.querySelectorAll('.option-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                // Remove active class from all buttons
+                document.querySelectorAll('.option-btn').forEach(b => b.classList.remove('active'));
+                // Add active class to clicked button
+                this.classList.add('active');
+                
+                // Hide all input types
+                document.querySelectorAll('.image-input').forEach(input => input.style.display = 'none');
+                
+                // Show selected input type
+                const option = this.dataset.option;
+                document.querySelector(`.${option}-input`).style.display = 'block';
+            });
+        });
+      </script>
     <% } else { %>
       <div class="post-card">
         <h2>Post not found</h2>

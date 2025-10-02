@@ -15,9 +15,28 @@
         <% } else { %>
             <% posts.forEach(function(post) { %>
             <div class="post-card">
-                <a href="/posts/<%= post._id %>"><h2><%= post.title %></h2></a>
-                <p><%= post.body %></p>
-                <hr>
+                <% if (post.featuredImage) { %>
+                    <div class="post-image">
+                        <img src="<%= post.featuredImage %>" alt="<%= post.title %>" onerror="this.style.display='none'">
+                    </div>
+                <% } %>
+                
+                <div class="post-content">
+                    <% if (post.category) { %>
+                        <span class="category-badge"><%= post.category %></span>
+                    <% } %>
+                    
+                    <a href="/posts/<%= post._id %>"><h2><%= post.title %></h2></a>
+                    <p class="post-preview"><%= post.body.substring(0, 150) %>...</p>
+                    
+                    <div class="post-meta">
+                        <small>📅 <%= new Date(post.createdAt).toLocaleDateString('en-US', { 
+                            year: 'numeric', 
+                            month: 'long', 
+                            day: 'numeric' 
+                        }) %></small>
+                    </div>
+                </div>
             </div>
             <% }); %>
         <% } %>

@@ -8,11 +8,193 @@
 </head>
 <body>
 <%-include("partials/header") %>
-    <form class="post-card " action="/compose" method="POST">
-        <input type="text" name="postTitle" placeholder="Title" required>
-        <textarea name="postBody" rows="6" placeholder="Post content here..." required></textarea>
-        <button type="submit">Publish</button>  
+    <form class="post-card compose-form" action="/compose" method="POST" enctype="multipart/form-data">
+        <h2>
+            <svg style="width: 1.5rem; height: 1.5rem; display: inline-block; vertical-align: middle; margin-right: 0.5rem;" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path>
+            </svg>
+            Share Your Reflection
+        </h2>
+        
+        <!-- Title -->
+        <div class="form-group">
+            <label for="postTitle">Title</label>
+            <input type="text" id="postTitle" name="postTitle" placeholder="What's on your mind?" required>
+        </div>
+
+        <!-- Category -->
+        <div class="form-group">
+            <label for="category">Category</label>
+            <input type="text" id="category" name="category" list="categories" 
+                   placeholder="Select or create a category..." 
+                   value="Daily Reflections" required>
+            <datalist id="categories">
+                <% if (typeof categories !== 'undefined' && categories.length > 0) { %>
+                    <% categories.forEach(cat => { %>
+                        <option value="<%= cat %>"><%= cat %></option>
+                    <% }); %>
+                <% } else { %>
+                    <option value="Daily Reflections">Daily Reflections</option>
+                <% } %>
+            </datalist>
+            <small class="form-hint">
+                <svg style="width: 1rem; height: 1rem; display: inline-block; vertical-align: middle; margin-right: 0.25rem;" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364-.707l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+                </svg>
+                Type to create a new category or select an existing one
+            </small>
+        </div>
+
+        <!-- Featured Image (Multiple Options) -->
+        <div class="form-group">
+            <label for="imageOption">Featured Image (Optional)</label>
+            
+            <!-- Image option selector -->
+            <div class="image-options">
+                <label class="radio-option">
+                    <input type="radio" name="imageOption" value="none" checked>
+                    <span>
+                        <svg style="width: 1rem; height: 1rem; display: inline-block; vertical-align: middle; margin-right: 0.25rem;" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                        </svg>
+                        No Image
+                    </span>
+                </label>
+                <label class="radio-option">
+                    <input type="radio" name="imageOption" value="upload">
+                    <span>
+                        <svg style="width: 1rem; height: 1rem; display: inline-block; vertical-align: middle; margin-right: 0.25rem;" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                        </svg>
+                        Upload from Device
+                    </span>
+                </label>
+                <label class="radio-option">
+                    <input type="radio" name="imageOption" value="url">
+                    <span>
+                        <svg style="width: 1rem; height: 1rem; display: inline-block; vertical-align: middle; margin-right: 0.25rem;" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path>
+                        </svg>
+                        Image URL
+                    </span>
+                </label>
+            </div>
+
+            <!-- File upload option -->
+            <div id="uploadOption" class="image-input" style="display: none;">
+                <input type="file" id="imageFile" name="imageFile" accept="image/*">
+                <small class="form-hint">
+                    <svg style="width: 1rem; height: 1rem; display: inline-block; vertical-align: middle; margin-right: 0.25rem;" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                    </svg>
+                    Upload JPG, PNG, or WebP images (max 5MB)
+                </small>
+            </div>
+
+            <!-- URL input option -->
+            <div id="urlOption" class="image-input" style="display: none;">
+                <input type="url" id="featuredImageUrl" name="featuredImageUrl" 
+                       placeholder="https://example.com/image.jpg">
+                <small class="form-hint">
+                    <svg style="width: 1rem; height: 1rem; display: inline-block; vertical-align: middle; margin-right: 0.25rem;" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"></path>
+                    </svg>
+                    Paste an image URL from the web
+                </small>
+            </div>
+        </div>
+
+        <!-- Excerpt -->
+        <div class="form-group">
+            <label for="excerpt">Short Description (optional)</label>
+            <textarea id="excerpt" name="excerpt" rows="2" maxlength="200" placeholder="Brief description of your reflection..."></textarea>
+            <small><span id="excerptCount">0</span>/200 characters</small>
+        </div>
+
+        <!-- Tags -->
+        <div class="form-group">
+            <label for="tags">Tags (optional)</label>
+            <input type="text" id="tags" name="tags" placeholder="personal, growth, insight (comma-separated)">
+        </div>
+
+        <!-- Post Content -->
+        <div class="form-group">
+            <label for="postBody">Your Reflection</label>
+            <textarea id="postBody" name="postBody" rows="8" placeholder="Share your thoughts, insights, and reflections..." required></textarea>
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" class="publish-btn">
+                <svg style="width: 1rem; height: 1rem; display: inline-block; vertical-align: middle; margin-right: 0.25rem;" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
+                </svg>
+                Publish Reflection
+            </button>
+            <a href="/" class="cancel-btn">Cancel</a>
+        </div>
     </form>
+
+    <script>
+        // Character counter for excerpt
+        const excerptTextarea = document.getElementById('excerpt');
+        const excerptCount = document.getElementById('excerptCount');
+        
+        if (excerptTextarea && excerptCount) {
+            excerptTextarea.addEventListener('input', function() {
+                excerptCount.textContent = this.value.length;
+            });
+        }
+
+        // Image option toggle functionality
+        const imageOptions = document.querySelectorAll('input[name="imageOption"]');
+        const uploadOption = document.getElementById('uploadOption');
+        const urlOption = document.getElementById('urlOption');
+
+        imageOptions.forEach(option => {
+            option.addEventListener('change', function() {
+                // Hide all options first
+                uploadOption.style.display = 'none';
+                urlOption.style.display = 'none';
+
+                // Show selected option
+                if (this.value === 'upload') {
+                    uploadOption.style.display = 'block';
+                } else if (this.value === 'url') {
+                    urlOption.style.display = 'block';
+                }
+            });
+        });
+
+        // File upload preview functionality
+        const fileInput = document.getElementById('imageFile');
+        if (fileInput) {
+            fileInput.addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    // Validate file size (5MB limit)
+                    if (file.size > 5 * 1024 * 1024) {
+                        alert('File size must be less than 5MB');
+                        this.value = '';
+                        return;
+                    }
+
+                    // Show file name feedback
+                    const fileInfo = document.createElement('small');
+                    fileInfo.textContent = `📁 Selected: ${file.name} (${(file.size / 1024 / 1024).toFixed(2)}MB)`;
+                    fileInfo.className = 'file-info';
+                    
+                    // Remove existing file info
+                    const existingInfo = uploadOption.querySelector('.file-info');
+                    if (existingInfo) {
+                        existingInfo.remove();
+                    }
+                    
+                    uploadOption.appendChild(fileInfo);
+                }
+            });
+        }
+    </script>
     <div class="navbar">
     <a href="/" class="compose-button post-card">Return to Home</a>
         </div>
