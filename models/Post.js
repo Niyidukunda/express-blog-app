@@ -1,14 +1,35 @@
 import mongoose from "mongoose";
 
 const postSchema = new mongoose.Schema({
-  title: { type: String, required: true, trim: true },
-  body: { type: String, required: true },
+  title: { 
+    type: String, 
+    required: true, 
+    trim: true,
+    maxlength: 200
+  },
+  body: { 
+    type: String, 
+    required: true,
+    maxlength: 10000
+  },
   category: { 
     type: String, 
     required: true,
     trim: true,
-    default: 'Daily Reflections'
+    default: 'Daily Reflections',
+    maxlength: 50
   },
+  excerpt: {
+    type: String,
+    trim: true,
+    maxlength: 200,
+    default: ''
+  },
+  tags: [{
+    type: String,
+    trim: true,
+    maxlength: 30
+  }],
   featuredImage: { 
     type: String, // URL to the image
     default: null,

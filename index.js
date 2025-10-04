@@ -9,6 +9,13 @@ import multer from "multer";
 import path from "path";
 import Post from "./models/Post.js";
 
+// Security imports
+import helmet from "helmet";
+import rateLimit from "express-rate-limit";
+import { body, validationResult } from "express-validator";
+import xss from "xss";
+import cors from "cors";
+
 // Load environment variables
 dotenv.config();
 
@@ -16,7 +23,55 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const app = express();
 const port = process.env.PORT || 3000;
 
-// Middleware
+// Security middleware
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+      fontSrc: ["'self'", "https://fonts.gstatic.com"],
+      imgSrc: ["'self'", "data:", "https:", "http:"],
+      scriptSrc: ["'self'", "'unsafe-inline'"],
+      connectSrc: ["'self'"]
+    }
+  }
+}));
+
+// CORS configuration
+app.use(cors({
+  origin: process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(',') : ['http://localhost:3000'],
+  credentials: true
+}));
+
+// Rate limiting
+const generalLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // limit each IP to 100 requests per windowMs
+  message: 'Too many requests from this IP, please try again later.',
+  standardHeaders: true,
+  legacyHeaders: false
+});
+
+const postLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 hour
+  max: 50, // limit each IP to 50 post creations per hour (increased for testing)
+  message: 'Too many posts created from this IP, please try again in an hour.',
+  standardHeaders: true,
+  legacyHeaders: false
+});
+
+const uploadLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 hour
+  max: 10, // limit each IP to 10 uploads per hour
+  message: 'Too many file uploads from this IP, please try again in an hour.',
+  standardHeaders: true,
+  legacyHeaders: false
+});
+
+// Apply rate limiting
+app.use(generalLimiter);
+
+// Basic middleware
 app.use(express.static("public"));
 app.use(bodyParser.urlencoded({ extended: true }));
 app.set("view engine", "ejs");
@@ -34,20 +89,45 @@ const storage = multer.diskStorage({
   }
 });
 
-// File filter to only allow images
+// Enhanced file filter with security checks
 const fileFilter = (req, file, cb) => {
-  if (file.mimetype.startsWith('image/')) {
-    cb(null, true);
-  } else {
-    cb(new Error('Only image files are allowed!'), false);
+  // Allow only specific image types
+  const allowedMimes = [
+    'image/jpeg',
+    'image/jpg', 
+    'image/png',
+    'image/webp',
+    'image/gif'
+  ];
+  
+  // Check MIME type
+  if (!allowedMimes.includes(file.mimetype)) {
+    return cb(new Error('Only JPEG, PNG, WebP, and GIF images are allowed!'), false);
   }
+  
+  // Check file extension
+  const allowedExts = ['.jpg', '.jpeg', '.png', '.webp', '.gif'];
+  const ext = path.extname(file.originalname).toLowerCase();
+  
+  if (!allowedExts.includes(ext)) {
+    return cb(new Error('Invalid file extension!'), false);
+  }
+  
+  // Additional security: check for suspicious filenames
+  if (file.originalname.includes('..') || file.originalname.includes('/') || file.originalname.includes('\\')) {
+    return cb(new Error('Invalid filename!'), false);
+  }
+  
+  cb(null, true);
 };
 
 const upload = multer({ 
   storage: storage,
   fileFilter: fileFilter,
   limits: {
-    fileSize: 5 * 1024 * 1024 // 5MB limit
+    fileSize: 5 * 1024 * 1024, // 5MB limit
+    files: 1, // Only 1 file per request
+    fields: 10 // Limit number of form fields
   }
 });
 
@@ -186,25 +266,106 @@ app.get("/compose", async (req, res) => {
   }
 });
 
-app.post("/compose", upload.single('imageFile'), async (req, res) => {
-  const { postTitle, postBody, category, featuredImage } = req.body;
+// Input validation middleware for compose route
+const validatePostInput = [
+  body('postTitle')
+    .isLength({ min: 1, max: 200 })
+    .withMessage('Title must be between 1 and 200 characters')
+    .trim()
+    .escape(),
+  body('postBody')
+    .isLength({ min: 1, max: 10000 })
+    .withMessage('Post content must be between 1 and 10,000 characters')
+    .trim(),
+  body('category')
+    .optional()
+    .isLength({ max: 50 })
+    .withMessage('Category must be less than 50 characters')
+    .trim()
+    .escape(),
+  body('excerpt')
+    .optional()
+    .isLength({ max: 200 })
+    .withMessage('Excerpt must be less than 200 characters')
+    .trim()
+    .escape(),
+  body('tags')
+    .optional()
+    .isLength({ max: 200 })
+    .withMessage('Tags must be less than 200 characters')
+    .trim()
+    .escape(),
+  body('featuredImageUrl')
+    .if(body('imageOption').equals('url'))
+    .isURL()
+    .withMessage('Featured image must be a valid URL when using URL option')
+];
+
+// XSS sanitization function
+function sanitizeInput(input) {
+  if (!input) return input;
+  return xss(input, {
+    whiteList: {
+      p: [],
+      br: [],
+      strong: [],
+      em: [],
+      u: [],
+      ol: [],
+      ul: [],
+      li: [],
+      h1: [],
+      h2: [],
+      h3: [],
+      h4: [],
+      h5: [],
+      h6: [],
+      blockquote: []
+    },
+    stripIgnoreTag: true,
+    stripIgnoreTagBody: ['script', 'style']
+  });
+}
+
+app.post("/compose", postLimiter, upload.single('imageFile'), validatePostInput, async (req, res) => {
+  // Check for validation errors
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).render("compose.ejs", { 
+      isMongoConnected, 
+      categories: ["Daily Reflections"], 
+      currentPage: 'compose',
+      errors: errors.array()
+    });
+  }
+
+    const { postTitle, postBody, category, excerpt, tags, featuredImageUrl, imageOption } = req.body;
   
-  // Determine the image source: uploaded file or URL
-  let imageSource = null;
-  if (req.file) {
-    // File was uploaded, use the file path
-    imageSource = `/uploads/${req.file.filename}`;
-  } else if (featuredImage && featuredImage.trim() !== '') {
-    // URL was provided
-    imageSource = featuredImage.trim();
+    // Sanitize all text inputs to prevent XSS attacks
+    const sanitizedTitle = sanitizeInput(postTitle);
+    const sanitizedBody = sanitizeInput(postBody);
+    const sanitizedCategory = sanitizeInput(category) || 'Daily Reflections';
+    const sanitizedExcerpt = sanitizeInput(excerpt);
+    const sanitizedTags = sanitizeInput(tags);
+  
+    // Determine the image source based on selected option
+    let imageSource = null;
+    if (imageOption === 'upload' && req.file) {
+      imageSource = `/uploads/${req.file.filename}`;
+    } else if (imageOption === 'url' && featuredImageUrl && featuredImageUrl.trim() !== '') {
+      imageSource = featuredImageUrl.trim();
+    } else {
+      imageSource = null;
   }
   
   try {
     if (isMongoConnected) {
       const newPost = new Post({ 
-        title: postTitle, 
-        body: postBody,
-        category: category || 'Daily Reflections',
+        title: sanitizedTitle, 
+        body: sanitizedBody,
+        category: sanitizedCategory,
+        excerpt: sanitizedExcerpt,
+        tags: sanitizedTags ? sanitizedTags.split(',').map(tag => tag.trim()) : [],
         featuredImage: imageSource
       });
       await newPost.save();
@@ -213,9 +374,11 @@ app.post("/compose", upload.single('imageFile'), async (req, res) => {
       const id = uuidv4();
       const newPost = { 
         _id: id, 
-        title: postTitle, 
-        body: postBody, 
-        category: category || 'Daily Reflections',
+        title: sanitizedTitle, 
+        body: sanitizedBody, 
+        category: sanitizedCategory,
+        excerpt: sanitizedExcerpt,
+        tags: sanitizedTags ? sanitizedTags.split(',').map(tag => tag.trim()) : [],
         featuredImage: imageSource,
         createdAt: new Date() 
       };

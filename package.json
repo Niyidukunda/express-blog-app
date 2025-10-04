@@ -13,11 +13,18 @@
   "author": "Fidel Niyidukunda",
   "license": "MIT",
   "dependencies": {
+    "cors": "^2.8.5",
+    "dompurify": "^3.2.7",
     "dotenv": "^17.2.3",
     "ejs": "^3.1.10",
     "express": "^5.1.0",
+    "express-rate-limit": "^8.1.0",
+    "express-validator": "^7.2.1",
+    "helmet": "^8.1.0",
     "mongoose": "^8.18.2",
     "multer": "^2.0.2",
-    "uuid": "^13.0.0"
+    "node-fetch": "^3.3.2",
+    "uuid": "^13.0.0",
+    "xss": "^1.0.15"
   }
 }

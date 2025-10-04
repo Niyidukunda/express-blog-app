@@ -25,7 +25,7 @@
       <!-- Search Bar -->
       <div class="search-container">
         <input type="text" id="searchInput" placeholder="Search reflections..." class="search-input">
-        <button class="search-btn" onclick="searchPosts()">
+        <button class="search-btn" id="searchBtn">
           <svg class="search-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
           </svg>
@@ -33,7 +33,7 @@
       </div>
       
       <!-- Theme Toggle -->
-      <button class="theme-toggle" onclick="toggleTheme()" title="Toggle theme">
+      <button class="theme-toggle" id="themeToggleBtn" title="Toggle theme">
         <svg class="theme-icon theme-moon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>
         </svg>
@@ -101,50 +101,60 @@
     <% } %>
   <% } %>
 
-  <!-- JavaScript for Enhanced Features -->
+  <!-- Theme Toggle JavaScript - CSP Compliant -->
   <script>
-    // Theme Toggle Functionality
+    console.log('Script loaded');
+    
     function toggleTheme() {
+      console.log('toggleTheme called');
+      
       const body = document.body;
-      const moonIcon = document.querySelector('.theme-moon');
-      const sunIcon = document.querySelector('.theme-sun');
+      const currentTheme = body.getAttribute('data-theme');
       
-      if (body.getAttribute('data-theme') === 'dark') {
+      console.log('Current theme:', currentTheme);
+      console.log('Body element:', body);
+      
+      if (currentTheme === 'dark') {
+        // Switch to light
         body.removeAttribute('data-theme');
-        moonIcon.style.display = 'block';
-        sunIcon.style.display = 'none';
         localStorage.setItem('theme', 'light');
+        console.log('Switched to light theme');
+        updateIcons('light');
       } else {
+        // Switch to dark
         body.setAttribute('data-theme', 'dark');
-        moonIcon.style.display = 'none';
-        sunIcon.style.display = 'block';
         localStorage.setItem('theme', 'dark');
+        console.log('Switched to dark theme');
+        updateIcons('dark');
       }
+      
+      // Force recalculation
+      body.offsetHeight;
     }
-
-    // Load saved theme on page load
-    document.addEventListener('DOMContentLoaded', function() {
-      const savedTheme = localStorage.getItem('theme');
+    
+    function updateIcons(theme) {
       const moonIcon = document.querySelector('.theme-moon');
       const sunIcon = document.querySelector('.theme-sun');
       
-      if (savedTheme === 'dark') {
-        document.body.setAttribute('data-theme', 'dark');
+      console.log('Updating icons for theme:', theme);
+      console.log('Moon icon:', moonIcon);
+      console.log('Sun icon:', sunIcon);
+      
+      if (theme === 'dark') {
         if (moonIcon) moonIcon.style.display = 'none';
         if (sunIcon) sunIcon.style.display = 'block';
+      } else {
+        if (moonIcon) moonIcon.style.display = 'block';
+        if (sunIcon) sunIcon.style.display = 'none';
       }
-    });
-
-    // Search Functionality
+    }
+    
     function searchPosts() {
       const searchTerm = document.getElementById('searchInput').value.toLowerCase();
       const postCards = document.querySelectorAll('.post-card');
       
       if (!searchTerm.trim()) {
-        // Show all posts if search is empty
-        postCards.forEach(card => {
-          card.style.display = 'block';
-        });
+        postCards.forEach(card => card.style.display = 'block');
         return;
       }
       
@@ -160,39 +170,45 @@
         }
       });
     }
-
-    // Real-time search as user types
+    
+    // Load saved theme and set up event listeners on page load
     document.addEventListener('DOMContentLoaded', function() {
+      console.log('DOM loaded, setting up event listeners');
+      
+      // Set up theme toggle event listener
+      const themeToggleBtn = document.getElementById('themeToggleBtn');
+      if (themeToggleBtn) {
+        themeToggleBtn.addEventListener('click', toggleTheme);
+        console.log('Theme toggle event listener added');
+      } else {
+        console.error('Theme toggle button not found');
+      }
+      
+      // Set up search event listeners
+      const searchBtn = document.getElementById('searchBtn');
       const searchInput = document.getElementById('searchInput');
+      
+      if (searchBtn) {
+        searchBtn.addEventListener('click', searchPosts);
+      }
+      
       if (searchInput) {
         searchInput.addEventListener('input', searchPosts);
       }
-    });
-
-    // Category Filter Functionality
-    function filterByCategory(category) {
-      const postCards = document.querySelectorAll('.post-card');
-      const filterBtns = document.querySelectorAll('.filter-btn');
       
-      // Update active button
-      filterBtns.forEach(btn => btn.classList.remove('active'));
-      event.target.classList.add('active');
+      // Load saved theme
+      const savedTheme = localStorage.getItem('theme');
+      console.log('Saved theme:', savedTheme);
       
-      // Filter posts
-      postCards.forEach(card => {
-        const postCategory = card.querySelector('.category-badge')?.textContent || '';
-        
-        if (category === 'all' || postCategory === category) {
-          card.style.display = 'block';
-        } else {
-          card.style.display = 'none';
-        }
-      });
-      
-      // Clear search when filtering by category
-      const searchInput = document.getElementById('searchInput');
-      if (searchInput) {
-        searchInput.value = '';
+      if (savedTheme === 'dark') {
+        document.body.setAttribute('data-theme', 'dark');
+        updateIcons('dark');
+      } else {
+        document.body.removeAttribute('data-theme');
+        updateIcons('light');
       }
-    }
+    });
   </script>
+  
+  <!-- External JavaScript for search/filter -->
+  <script src="/js/search-filter.js"></script>

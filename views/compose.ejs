@@ -8,6 +8,27 @@
 </head>
 <body>
 <%-include("partials/header") %>
+    
+    <!-- Security Notice -->
+    <div class="security-notice">
+        <svg style="width: 1rem; height: 1rem; display: inline-block; vertical-align: middle; margin-right: 0.5rem;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+        </svg>
+        This form is protected against XSS attacks and includes input validation for your security.
+    </div>
+
+    <!-- Validation Errors Display -->
+    <% if (typeof errors !== 'undefined' && errors.length > 0) { %>
+        <div class="error-container">
+            <h3>⚠️ Please fix the following errors:</h3>
+            <ul>
+                <% errors.forEach(error => { %>
+                    <li><%= error.msg %></li>
+                <% }); %>
+            </ul>
+        </div>
+    <% } %>
+
     <form class="post-card compose-form" action="/compose" method="POST" enctype="multipart/form-data">
         <h2>
             <svg style="width: 1.5rem; height: 1.5rem; display: inline-block; vertical-align: middle; margin-right: 0.5rem;" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">

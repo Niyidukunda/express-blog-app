@@ -1,8 +1,48 @@
 # Purpose & Perspective - Personal Reflection Blog
 
-A thoughtful, full-stack blog application built with Node.js, Express, MongoDB, and EJS templating. This personal reflection platform shares insights on life, growth, and finding meaning, designed as an extension of my professional portfolio at delitweb.co.za. The app includes intelligent fallback storage and automatic database reconnection to ensure it stays online even when the database is unavailable.
+A secure, full-stack blog application built with Node.js, Express, MongoDB, and EJS templating. This personal reflection platform shares insights on life, growth, and finding meaning, designed as an extension of my professional portfolio. The app includes comprehensive security features, intelligent fallback storage, and automatic database reconnection to ensure it stays online even when the database is unavailable.
 
-> *A personal space for sharing insights on purpose, growth, and meaningful living.*
+> *A personal space for sharing insights on purpose, growth, and meaningful living - built with enterprise-level security.*
+
+## 🔒 Security Features
+
+This application implements comprehensive security measures to protect against common web vulnerabilities:
+
+### **XSS (Cross-Site Scripting) Protection**
+- **Input Sanitization**: All user inputs are sanitized using the `xss` library
+- **HTML Escaping**: EJS templates use escaped output (`<%= %>`) by default
+- **Content Filtering**: Malicious HTML tags and scripts are stripped from content
+- **Whitelist Approach**: Only safe HTML tags are allowed in post content
+
+### **Input Validation**
+- **Field Length Limits**: Title (200 chars), Body (10,000 chars), Category (50 chars)
+- **Data Type Validation**: URL validation for image links, required field checking
+- **Express Validator**: Server-side validation with detailed error messages
+- **Trim & Escape**: Automatic trimming and escaping of text inputs
+
+### **Rate Limiting**
+- **General API**: 100 requests per 15 minutes per IP
+- **Post Creation**: 5 posts per hour per IP  
+- **File Uploads**: 10 uploads per hour per IP
+- **DDoS Protection**: Prevents server overload and abuse
+
+### **Security Headers (Helmet.js)**
+- **Content Security Policy (CSP)**: Prevents XSS and code injection
+- **X-Frame-Options**: Prevents clickjacking attacks
+- **X-Content-Type-Options**: Prevents MIME type sniffing
+- **HSTS**: Forces HTTPS connections (in production)
+
+### **File Upload Security**
+- **MIME Type Validation**: Only JPEG, PNG, WebP, and GIF files allowed
+- **File Extension Checking**: Double validation against spoofed files
+- **File Size Limits**: Maximum 5MB per upload
+- **Secure File Naming**: Random UUID-based filenames prevent conflicts
+- **Path Traversal Protection**: Prevents directory traversal attacks
+
+### **CORS Configuration**
+- **Origin Whitelisting**: Only allowed domains can access the API
+- **Credential Control**: Secure cookie and session handling
+- **Environment-based**: Different settings for development and production
 
 ## Architecture Overview
 
@@ -16,14 +56,33 @@ A thoughtful, full-stack blog application built with Node.js, Express, MongoDB, 
 │  └─────────────┘  └─────────────┘  └─────────────┘        │
 └─────────────────────────────────────────────────────────────┘
                               │
-                              ▼ HTTP Requests
+                              ▼ HTTPS (Secured)
+┌─────────────────────────────────────────────────────────────┐
+│                SECURITY MIDDLEWARE LAYER                    │
+│                                                             │
+│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐        │
+│  │   Helmet    │  │Rate Limiter │  │    CORS     │        │
+│  │ (Headers)   │  │ Protection  │  │  Control    │        │
+│  └─────────────┘  └─────────────┘  └─────────────┘        │
+└─────────────────────────────────────────────────────────────┘
+                              │
+                              ▼ Validated Requests
 ┌─────────────────────────────────────────────────────────────┐
 │                   EXPRESS SERVER                            │
 │                                                             │
 │  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐        │
-│  │   Routes    │  │ Middleware  │  │   Static    │        │
-│  │  Handler    │  │   Layer     │  │   Assets    │        │
+│  │   Routes    │  │   Input     │  │   Static    │        │
+│  │  Handler    │  │ Validation  │  │   Assets    │        │
 │  └─────────────┘  └─────────────┘  └─────────────┘        │
+│                              │                              │
+│  ┌─────────────────────────────────────────────────────┐   │
+│  │          XSS SANITIZATION & VALIDATION              │   │
+│  │                                                     │   │
+│  │  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐ │   │
+│  │  │    XSS      │  │ Express     │  │   File      │ │   │
+│  │  │ Filtering   │  │ Validator   │  │ Validation  │ │   │
+│  │  └─────────────┘  └─────────────┘  └─────────────┘ │   │
+│  └─────────────────────────────────────────────────────┘   │
 │                              │                              │
 │  ┌─────────────────────────────────────────────────────┐   │
 │  │          CONNECTION MANAGEMENT                       │   │
@@ -35,7 +94,7 @@ A thoughtful, full-stack blog application built with Node.js, Express, MongoDB, 
 │  └─────────────────────────────────────────────────────┘   │
 └─────────────────────────────────────────────────────────────┘
                               │
-                              ▼
+                              ▼ Sanitized Data
 ┌─────────────────────────────────────────────────────────────┐
 │                    DATA LAYER                               │
 │                                                             │
@@ -249,6 +308,115 @@ git push origin feature/your-feature-name
 - **Error handling**: Always implement try-catch with fallback paths
 - **Documentation**: Comment complex logic and business rules
 
+## 🔧 Security Implementation Details
+
+### **Package Dependencies for Security**
+```json
+{
+  "helmet": "^7.1.0",           // Security headers
+  "express-validator": "^7.0.1", // Input validation
+  "xss": "^1.0.14",             // XSS sanitization
+  "express-rate-limit": "^7.1.5", // Rate limiting
+  "cors": "^2.8.5",             // CORS configuration
+  "dompurify": "^3.0.5"         // HTML sanitization
+}
+```
+
+### **XSS Protection Implementation**
+```javascript
+// Sanitization function with whitelist approach
+function sanitizeInput(input) {
+  return xss(input, {
+    whiteList: {
+      p: [], br: [], strong: [], em: [], u: [],
+      ol: [], ul: [], li: [], h1: [], h2: [], h3: []
+    },
+    stripIgnoreTag: true,
+    stripIgnoreTagBody: ['script', 'style']
+  });
+}
+```
+
+### **Rate Limiting Configuration**
+```javascript
+// Different limits for different endpoints
+const generalLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,  // 15 minutes
+  max: 100                   // 100 requests per IP
+});
+
+const postLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,  // 1 hour
+  max: 5                     // 5 posts per IP
+});
+```
+
+### **File Upload Security**
+```javascript
+// Multi-layer file validation
+const fileFilter = (req, file, cb) => {
+  const allowedMimes = ['image/jpeg', 'image/png', 'image/webp'];
+  const allowedExts = ['.jpg', '.jpeg', '.png', '.webp'];
+  
+  // MIME type + extension + filename validation
+  if (allowedMimes.includes(file.mimetype) && 
+      allowedExts.includes(path.extname(file.originalname)) &&
+      !file.originalname.includes('..')) {
+    cb(null, true);
+  } else {
+    cb(new Error('Invalid file type or name'), false);
+  }
+};
+```
+
+### **Security Headers Configuration**
+```javascript
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+      imgSrc: ["'self'", "data:", "https:", "http:"],
+      scriptSrc: ["'self'", "'unsafe-inline'"]
+    }
+  }
+}));
+```
+
+### **Environment Variables for Security**
+```env
+# Security Configuration
+MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/blog
+ALLOWED_ORIGINS=http://localhost:3000,https://yourdomain.com
+NODE_ENV=production
+SESSION_SECRET=your-super-secret-key-here
+```
+
+### **Security Best Practices Implemented**
+- ✅ **Input validation** on all user inputs
+- ✅ **XSS sanitization** for HTML content
+- ✅ **Rate limiting** to prevent abuse
+- ✅ **Security headers** via Helmet.js
+- ✅ **File upload restrictions** with multiple validations
+- ✅ **CORS configuration** for API security
+- ✅ **Error handling** without information leakage
+- ✅ **Environment variable** protection
+- ✅ **Path traversal** prevention
+- ✅ **MIME type validation** for uploads
+
+### **Security Testing**
+```bash
+# Test XSS protection
+curl -X POST http://localhost:3000/compose \
+  -d "postTitle=<script>alert('xss')</script>&postBody=Safe content"
+
+# Test rate limiting
+for i in {1..101}; do curl http://localhost:3000/; done
+
+# Test file upload security
+curl -X POST -F "imageFile=@malicious.php" http://localhost:3000/compose
+```
+
 ## License
 
 This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) file for details.
@@ -281,5 +449,6 @@ I'm documenting my learning journey building real-world applications with modern
 
 ---
 
-*Built with Node.js, Express, MongoDB, and lots of coffee*#   T r i g g e r   V e r c e l   r e d e p l o y   -   1 0 / 0 1 / 2 0 2 5   1 0 : 0 9 : 4 0  
+*Built with Node.js, Express, MongoDB, and lots of coffee*#   T r i g g e r   V e r c e l   r e d e p l o y   -   1 0 / 0 1 / 2 0 2 5   1 0 : 0 9 : 4 0 
+ 
  
