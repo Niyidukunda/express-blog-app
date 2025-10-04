@@ -4,7 +4,7 @@ A secure, full-stack blog application built with Node.js, Express, MongoDB, and 
 
 > *A personal space for sharing insights on purpose, growth, and meaningful living - built with enterprise-level security.*
 
-## 🔒 Security Features
+## Security Features
 
 This application implements comprehensive security measures to protect against common web vulnerabilities:
 
@@ -308,7 +308,7 @@ git push origin feature/your-feature-name
 - **Error handling**: Always implement try-catch with fallback paths
 - **Documentation**: Comment complex logic and business rules
 
-## 🔧 Security Implementation Details
+## Security Implementation Details
 
 ### **Package Dependencies for Security**
 ```json
@@ -393,11 +393,11 @@ SESSION_SECRET=your-super-secret-key-here
 ```
 
 ### **Security Best Practices Implemented**
-- ✅ **Input validation** on all user inputs
-- ✅ **XSS sanitization** for HTML content
-- ✅ **Rate limiting** to prevent abuse
-- ✅ **Security headers** via Helmet.js
-- ✅ **File upload restrictions** with multiple validations
+- **Input validation** on all user inputs
+- **XSS sanitization** for HTML content
+- **Rate limiting** to prevent abuse
+- **Security headers** via Helmet.js
+- **File upload restrictions** with multiple validations
 - ✅ **CORS configuration** for API security
 - ✅ **Error handling** without information leakage
 - ✅ **Environment variable** protection
