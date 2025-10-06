@@ -1,0 +1,28 @@
+{
+  "folders": [
+    {
+      "name": "BLOG WebApp",
+      "path": "."
+    },
+    {
+      "name": "Portfolio",
+      "path": "..\\..\\..\\fidel-portfolio"
+    }
+  ],
+  "settings": {
+    "terminal.integrated.cwd": "${workspaceFolder:BLOG WebApp}",
+    "files.exclude": {
+      "**/node_modules": true,
+      "**/.git": false,
+      "**/.next": true
+    }
+  },
+  "extensions": {
+    "recommendations": [
+      "ms-vscode.vscode-typescript-next",
+      "bradlc.vscode-tailwindcss",
+      "esbenp.prettier-vscode",
+      "ms-vscode.vscode-json"
+    ]
+  }
+}

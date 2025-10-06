@@ -155,7 +155,7 @@ async function connectToMongoDB() {
     console.log("🔍 MongoDB URI starts with mongodb+srv:", mongoURI?.startsWith('mongodb+srv://') ? 'Yes' : 'No');
     
     await mongoose.connect(mongoURI, {
-      serverSelectionTimeoutMS: 5000, // 5 second timeout
+      serverSelectionTimeoutMS: 30000, // 30 second timeout for Vercel cold starts
       socketTimeoutMS: 45000, // 45 second socket timeout
       bufferCommands: false, // Disable mongoose buffering
       maxPoolSize: 10, // Connection pool size
