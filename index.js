@@ -143,6 +143,11 @@ async function connectToMongoDB() {
   try {
     const mongoURI = process.env.MONGODB_URI;
     
+    // Debug: Log all environment variables to see what Vercel is providing
+    console.log("🔍 All environment variables:", Object.keys(process.env));
+    console.log("🔍 MONGODB_URI exists:", !!mongoURI);
+    console.log("🔍 MONGODB_URI length:", mongoURI ? mongoURI.length : 0);
+    
     if (!mongoURI) {
       console.log("❌ MONGODB_URI environment variable is not set");
       throw new Error("MONGODB_URI environment variable is not set");
