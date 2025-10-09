@@ -89,16 +89,16 @@
   </div>
 
   <!-- Category Filter Bar -->
-  <% if (typeof posts !== 'undefined' && posts.length > 0) { %>
-    <% const categories = [...new Set(posts.map(post => post.category))]; %>
-    <% if (categories.length > 1) { %>
-      <div class="category-filter">
-        <button class="filter-btn active" onclick="filterByCategory('all')">All</button>
-        <% categories.forEach(category => { %>
-          <button class="filter-btn" onclick="filterByCategory('<%= category %>')"><%= category %></button>
-        <% }); %>
-      </div>
-    <% } %>
+  <% if (typeof categories !== 'undefined' && categories.length > 0) { %>
+    <div class="category-filter">
+      <a href="/" class="filter-btn <%= (!selectedCategory || selectedCategory === 'all') ? 'active' : '' %>">All</a>
+      <% categories.forEach(category => { %>
+        <a href="/?category=<%= encodeURIComponent(category) %>" 
+           class="filter-btn <%= selectedCategory === category ? 'active' : '' %>">
+          <%= category %>
+        </a>
+      <% }); %>
+    </div>
   <% } %>
 
   <!-- Theme Toggle JavaScript - CSP Compliant -->

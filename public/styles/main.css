@@ -1049,7 +1049,6 @@ body {
     padding: 1rem;
     margin: 0 0.5rem 1rem 0.5rem;
   }
-}
 
   .image-options {
     flex-direction: column;
@@ -1059,4 +1058,184 @@ body {
   .radio-option {
     justify-content: center;
   }
+}
+
+/* Navigation Buttons */
+.post-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border-color);
+}
+
+.action-buttons {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.back-button {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.5rem 1rem;
+  background-color: var(--secondary-color);
+  color: white;
+  text-decoration: none;
+  border-radius: 5px;
+  font-size: 0.9rem;
+  transition: background-color 0.2s ease;
+}
+
+.back-button:hover {
+  background-color: #5a6268;
+  color: white;
+  text-decoration: none;
+}
+
+.form-actions {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.form-actions .back-button {
+  background-color: var(--light-color);
+  color: var(--text-color);
+  border: 1px solid var(--border-color);
+}
+
+.form-actions .back-button:hover {
+  background-color: var(--secondary-color);
+  color: white;
+}
+
+.cancel-button {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.6rem 1.2rem;
+  background-color: #dc3545;
+  color: white;
+  text-decoration: none;
+  border-radius: 5px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  border: none;
+  cursor: pointer;
+}
+
+.cancel-button:hover {
+  background-color: #c82333;
+  color: white;
+  text-decoration: none;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(220, 53, 69, 0.3);
+}
+
+/* Dark theme adjustments for navigation */
+[data-theme="dark"] .back-button {
+  background-color: #404040;
+  color: #e0e0e0;
+}
+
+[data-theme="dark"] .back-button:hover {
+  background-color: #505050;
+}
+
+[data-theme="dark"] .form-actions .back-button {
+  background-color: #2d2d2d;
+  color: #e0e0e0;
+  border-color: #404040;
+}
+
+[data-theme="dark"] .form-actions .back-button:hover {
+  background-color: #404040;
+}
+
+/* Category Dropdown Styles */
+#categorySelect {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid var(--border-color);
+  border-radius: 5px;
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+#categorySelect:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+}
+
+#customCategoryGroup {
+  padding: 1rem;
+  background-color: var(--light-color);
+  border: 1px solid var(--border-color);
+  border-radius: 5px;
+  margin-top: 0.5rem;
+}
+
+#customCategoryGroup input {
+  width: 100%;
+  padding: 0.5rem;
+  border: 1px solid var(--border-color);
+  border-radius: 3px;
+  margin-bottom: 0.5rem;
+}
+
+.btn-secondary {
+  padding: 0.5rem 1rem;
+  margin-right: 0.5rem;
+  background-color: var(--secondary-color);
+  color: white;
+  border: none;
+  border-radius: 3px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: background-color 0.2s ease;
+}
+
+.btn-secondary:hover {
+  background-color: #5a6268;
+}
+
+.btn-secondary:last-child {
+  background-color: #6c757d;
+}
+
+.btn-secondary:last-child:hover {
+  background-color: #545b62;
+}
+
+/* Dark theme adjustments for dropdown */
+[data-theme="dark"] #categorySelect {
+  background-color: #2d2d2d;
+  border-color: #404040;
+  color: #e0e0e0;
+}
+
+[data-theme="dark"] #customCategoryGroup {
+  background-color: #333333;
+  border-color: #494949;
+}
+
+[data-theme="dark"] #customCategoryGroup input {
+  background-color: #2d2d2d;
+  border-color: #404040;
+  color: #e0e0e0;
+}
+
+/* Dark theme for cancel button */
+[data-theme="dark"] .cancel-button {
+  background-color: #e74c3c;
+}
+
+[data-theme="dark"] .cancel-button:hover {
+  background-color: #c0392b;
+  box-shadow: 0 2px 4px rgba(231, 76, 60, 0.3);
 }

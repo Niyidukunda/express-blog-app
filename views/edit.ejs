@@ -22,10 +22,28 @@
         <!-- Category -->
         <div class="form-group">
             <label for="category">Category</label>
-            <input type="text" id="category" name="category" 
-                   placeholder="Select or create a category..." 
-                   value="<%= post.category || 'Daily Reflections' %>">
-            <small class="form-hint">💡 Type to create a new category</small>
+            <select id="categorySelect" name="category" required>
+                <option value="Daily Reflections" <%= (post.category === 'Daily Reflections' || !post.category) ? 'selected' : '' %>>Daily Reflections</option>
+                <option value="Personal Growth" <%= (post.category === 'Personal Growth') ? 'selected' : '' %>>Personal Growth</option>
+                <% if (typeof categories !== 'undefined' && categories.length > 0) { %>
+                    <% categories.forEach(cat => { %>
+                        <% if (cat !== 'Daily Reflections' && cat !== 'Personal Growth') { %>
+                            <option value="<%= cat %>" <%= (post.category === cat) ? 'selected' : '' %>><%= cat %></option>
+                        <% } %>
+                    <% }); %>
+                <% } %>
+                <option value="__new__">+ Create New Category</option>
+            </select>
+            
+            <!-- Hidden input for custom category -->
+            <div id="customCategoryGroup" class="form-group" style="display: none; margin-top: 0.5rem;">
+                <input type="text" id="customCategory" placeholder="Enter new category name..." 
+                       style="margin-top: 0.5rem;">
+                <button type="button" id="addCategoryBtn" class="btn-secondary" style="margin-top: 0.5rem;">Add Category</button>
+                <button type="button" id="cancelCategoryBtn" class="btn-secondary" style="margin-top: 0.5rem;">Cancel</button>
+            </div>
+            
+            <small class="form-hint">💡 Select an existing category or create a new one</small>
         </div>
 
         <!-- Current Image Display -->
@@ -70,6 +88,12 @@
         <div class="form-actions">
             <button type="submit" class="submit-button">💾 Update Reflection</button>
             <a href="/posts/<%= post._id %>" class="cancel-button">Cancel</a>
+            <a href="/" class="back-button">
+              <svg style="width: 1rem; height: 1rem; display: inline-block; vertical-align: middle; margin-right: 0.25rem;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+              </svg>
+              Home
+            </a>
         </div>
       </form>
 
@@ -90,6 +114,64 @@
                 document.querySelector(`.${option}-input`).style.display = 'block';
             });
         });
+
+        // Category dropdown functionality
+        const categorySelect = document.getElementById('categorySelect');
+        const customCategoryGroup = document.getElementById('customCategoryGroup');
+        const customCategoryInput = document.getElementById('customCategory');
+        const addCategoryBtn = document.getElementById('addCategoryBtn');
+        const cancelCategoryBtn = document.getElementById('cancelCategoryBtn');
+
+        if (categorySelect && customCategoryGroup) {
+            categorySelect.addEventListener('change', function() {
+                if (this.value === '__new__') {
+                    customCategoryGroup.style.display = 'block';
+                    customCategoryInput.focus();
+                } else {
+                    customCategoryGroup.style.display = 'none';
+                }
+            });
+
+            addCategoryBtn.addEventListener('click', function() {
+                const newCategory = customCategoryInput.value.trim();
+                if (newCategory) {
+                    // Add new option to select (before the "Create New" option)
+                    const newOption = document.createElement('option');
+                    newOption.value = newCategory;
+                    newOption.textContent = newCategory;
+                    newOption.selected = true;
+                    
+                    // Insert before the last option (Create New Category)
+                    const lastOption = categorySelect.lastElementChild;
+                    categorySelect.insertBefore(newOption, lastOption);
+                    
+                    // Hide the custom input
+                    customCategoryGroup.style.display = 'none';
+                    customCategoryInput.value = '';
+                }
+            });
+
+            cancelCategoryBtn.addEventListener('click', function() {
+                customCategoryGroup.style.display = 'none';
+                customCategoryInput.value = '';
+                // Reset to original category
+                const originalCategory = '<%= post.category || "Daily Reflections" %>';
+                for (let option of categorySelect.options) {
+                    if (option.value === originalCategory) {
+                        option.selected = true;
+                        break;
+                    }
+                }
+            });
+
+            // Allow Enter key to add category
+            customCategoryInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    addCategoryBtn.click();
+                }
+            });
+        }
       </script>
     <% } else { %>
       <div class="post-card">

@@ -143,10 +143,7 @@ async function connectToMongoDB() {
   try {
     const mongoURI = process.env.MONGODB_URI;
     
-    // Debug: Log all environment variables to see what Vercel is providing
-    console.log("🔍 All environment variables:", Object.keys(process.env));
-    console.log("🔍 MONGODB_URI exists:", !!mongoURI);
-    console.log("🔍 MONGODB_URI length:", mongoURI ? mongoURI.length : 0);
+    // Environment check for MongoDB connection
     
     if (!mongoURI) {
       console.log("❌ MONGODB_URI environment variable is not set");
@@ -218,19 +215,59 @@ setInterval(async () => {
 // Routes
 app.get("/", async (req, res) => {
   try {
+    const { category } = req.query;
+    let posts, allCategories = [];
+    
     if (isMongoConnected) {
-      const posts = await Post.find().sort({ createdAt: -1 });
-      res.render("index.ejs", { posts, isMongoConnected, currentPage: 'home' });
+      // Get all available categories for the filter bar
+      allCategories = await Post.distinct("category");
+      allCategories = allCategories.filter(cat => cat && cat.trim() !== '');
+      
+      // If category filter is specified, filter by category, otherwise get all posts
+      if (category && category !== 'all') {
+        posts = await Post.find({ category: category }).sort({ createdAt: -1 });
+      } else {
+        posts = await Post.find().sort({ createdAt: -1 });
+      }
+      res.render("index.ejs", { 
+        posts, 
+        isMongoConnected, 
+        currentPage: 'home', 
+        selectedCategory: category,
+        categories: allCategories 
+      });
     } else {
       // Use fallback storage
-      const sortedPosts = fallbackPosts.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-      res.render("index.ejs", { posts: sortedPosts, isMongoConnected, currentPage: 'home' });
+      let sortedPosts = fallbackPosts.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+      
+      // Get all available categories from fallback storage
+      allCategories = [...new Set(fallbackPosts.map(post => post.category).filter(cat => cat && cat.trim() !== ''))];
+      
+      // Filter by category if specified
+      if (category && category !== 'all') {
+        sortedPosts = sortedPosts.filter(post => post.category === category);
+      }
+      
+      res.render("index.ejs", { 
+        posts: sortedPosts, 
+        isMongoConnected, 
+        currentPage: 'home', 
+        selectedCategory: category,
+        categories: allCategories 
+      });
     }
   } catch (err) {
     console.error("Error fetching posts:", err);
     // Fallback to in-memory storage on error
     const sortedPosts = fallbackPosts.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-    res.render("index.ejs", { posts: sortedPosts, isMongoConnected: false, currentPage: 'home' });
+    const fallbackCategories = [...new Set(fallbackPosts.map(post => post.category).filter(cat => cat && cat.trim() !== ''))];
+    res.render("index.ejs", { 
+      posts: sortedPosts, 
+      isMongoConnected: false, 
+      currentPage: 'home', 
+      selectedCategory: null,
+      categories: fallbackCategories 
+    });
   }
 });
 
@@ -254,20 +291,33 @@ app.get("/api/categories", async (req, res) => {
 app.get("/compose", async (req, res) => {
   try {
     // Get existing categories for suggestions
-    let categories = ["Daily Reflections"]; // Default category
+    let categories = ["Daily Reflections", "Personal Growth"]; // Default categories
     
     if (isMongoConnected) {
       const existingCategories = await Post.distinct("category");
-      categories = existingCategories.filter(cat => cat && cat.trim() !== '') || categories;
+      console.log("📋 Raw categories from DB:", existingCategories);
+      const filteredCategories = existingCategories.filter(cat => cat && cat.trim() !== '');
+      if (filteredCategories.length > 0) {
+        // Add unique categories and ensure "Daily Reflections" is always first
+        const uniqueCategories = [...new Set([...categories, ...filteredCategories])];
+        categories = uniqueCategories;
+      }
+      console.log("📋 Filtered categories:", categories);
     } else {
       const existingCategories = [...new Set(fallbackPosts.map(post => post.category).filter(cat => cat && cat.trim() !== ''))];
-      categories = existingCategories.length > 0 ? existingCategories : categories;
+      if (existingCategories.length > 0) {
+        // Add unique categories and ensure "Daily Reflections" is always first
+        const uniqueCategories = [...new Set([...categories, ...existingCategories])];
+        categories = uniqueCategories;
+      }
+      console.log("📋 Fallback categories:", categories);
     }
     
-    res.render("compose.ejs", { isMongoConnected, categories, currentPage: 'compose' });
+    console.log("📋 Final categories being passed to template:", categories);
+    res.render("compose.ejs", { isMongoConnected, categories, currentPage: 'compose', selectedCategory: null });
   } catch (err) {
     console.error("Error fetching categories for compose:", err);
-    res.render("compose.ejs", { isMongoConnected, categories: ["Daily Reflections"], currentPage: 'compose' });
+    res.render("compose.ejs", { isMongoConnected, categories: ["Daily Reflections"], currentPage: 'compose', selectedCategory: null });
   }
 });
 
@@ -394,18 +444,18 @@ app.post("/compose", postLimiter, upload.single('imageFile'), validatePostInput,
     console.error("Error saving post:", err);
     // Fallback to in-memory storage on error
     const id = uuidv4();
-    const wordCount = postBody.split(' ').length;
+    const wordCount = sanitizedBody.split(' ').length;
     const readingTime = Math.max(1, Math.ceil(wordCount / 200));
-    const autoExcerpt = excerpt || postBody.substring(0, 150) + '...';
+    const autoExcerpt = sanitizedExcerpt || sanitizedBody.substring(0, 150) + '...';
     
     const post = { 
       _id: id, 
-      title: postTitle, 
-      body: postBody,
-      category: category || 'daily-reflection',
-      featuredImage: featuredImage || null,
+      title: sanitizedTitle, 
+      body: sanitizedBody,
+      category: sanitizedCategory,
       excerpt: autoExcerpt,
-      tags: tagArray,
+      tags: sanitizedTags ? sanitizedTags.split(',').map(tag => tag.trim()) : [],
+      featuredImage: imageSource,
       readingTime: readingTime,
       createdAt: new Date(),
       updatedAt: new Date()
@@ -420,7 +470,7 @@ app.get("/posts/:id", async (req, res) => {
     if (isMongoConnected) {
       const post = await Post.findById(req.params.id);
       if (post) {
-        res.render("posts.ejs", { post, isMongoConnected });
+        res.render("posts.ejs", { post, isMongoConnected, selectedCategory: null });
       } else {
         res.status(404).send("Post not found");
       }
@@ -428,7 +478,7 @@ app.get("/posts/:id", async (req, res) => {
       // Use fallback storage
       const post = fallbackPosts.find(p => p._id === req.params.id);
       if (post) {
-        res.render("posts.ejs", { post, isMongoConnected });
+        res.render("posts.ejs", { post, isMongoConnected, selectedCategory: null });
       } else {
         res.status(404).send("Post not found");
       }
@@ -438,7 +488,7 @@ app.get("/posts/:id", async (req, res) => {
     // Fallback to in-memory storage on error
     const post = fallbackPosts.find(p => p._id === req.params.id);
     if (post) {
-      res.render("posts.ejs", { post, isMongoConnected: false });
+      res.render("posts.ejs", { post, isMongoConnected: false, selectedCategory: null });
     } else {
       res.status(404).send("Post not found");
     }
@@ -447,18 +497,36 @@ app.get("/posts/:id", async (req, res) => {
 
 app.get("/posts/:id/edit", async (req, res) => {
   try {
+    let post, categories = ["Daily Reflections", "Personal Growth"];
+    
     if (isMongoConnected) {
-      const post = await Post.findById(req.params.id);
+      post = await Post.findById(req.params.id);
+      // Get all available categories
+      const existingCategories = await Post.distinct("category");
+      const filteredCategories = existingCategories.filter(cat => cat && cat.trim() !== '');
+      if (filteredCategories.length > 0) {
+        // Add unique categories and ensure "Daily Reflections" is always first
+        const uniqueCategories = [...new Set([...categories, ...filteredCategories])];
+        categories = uniqueCategories;
+      }
+      
       if (post) {
-        res.render("edit.ejs", { post, isMongoConnected });
+        res.render("edit.ejs", { post, isMongoConnected, categories, selectedCategory: null });
       } else {
         res.status(404).send("Post not found");
       }
     } else {
       // Use fallback storage
-      const post = fallbackPosts.find(p => p._id === req.params.id);
+      post = fallbackPosts.find(p => p._id === req.params.id);
+      const existingCategories = [...new Set(fallbackPosts.map(post => post.category).filter(cat => cat && cat.trim() !== ''))];
+      if (existingCategories.length > 0) {
+        // Add unique categories and ensure "Daily Reflections" is always first
+        const uniqueCategories = [...new Set([...categories, ...existingCategories])];
+        categories = uniqueCategories;
+      }
+      
       if (post) {
-        res.render("edit.ejs", { post, isMongoConnected });
+        res.render("edit.ejs", { post, isMongoConnected, categories, selectedCategory: null });
       } else {
         res.status(404).send("Post not found");
       }
@@ -467,8 +535,10 @@ app.get("/posts/:id/edit", async (req, res) => {
     console.error("Error fetching post for edit:", err);
     // Fallback to in-memory storage on error
     const post = fallbackPosts.find(p => p._id === req.params.id);
+    const fallbackCategories = [...new Set(fallbackPosts.map(post => post.category).filter(cat => cat && cat.trim() !== ''))];
+    const finalCategories = fallbackCategories.length > 0 ? [...new Set([...categories, ...fallbackCategories])] : categories;
     if (post) {
-      res.render("edit.ejs", { post, isMongoConnected: false });
+      res.render("edit.ejs", { post, isMongoConnected: false, categories: finalCategories, selectedCategory: null });
     } else {
       res.status(404).send("Post not found");
     }

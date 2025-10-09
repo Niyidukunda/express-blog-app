@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>New Reflection - Purpose & Perspective</title>
+    <title>Create New Post - Purpose & Perspective</title>
     <link rel="stylesheet" href="/styles/main.css">
 </head>
 <body>
-<%-include("partials/header") %>
+<%- include("partials/header") %>
     
     <!-- Security Notice -->
     <div class="security-notice">
@@ -46,23 +46,32 @@
         <!-- Category -->
         <div class="form-group">
             <label for="category">Category</label>
-            <input type="text" id="category" name="category" list="categories" 
-                   placeholder="Select or create a category..." 
-                   value="Daily Reflections" required>
-            <datalist id="categories">
+            <select id="categorySelect" name="category" required>
+                <option value="Daily Reflections" selected>Daily Reflections</option>
+                <option value="Personal Growth">Personal Growth</option>
                 <% if (typeof categories !== 'undefined' && categories.length > 0) { %>
                     <% categories.forEach(cat => { %>
-                        <option value="<%= cat %>"><%= cat %></option>
+                        <% if (cat !== 'Daily Reflections' && cat !== 'Personal Growth') { %>
+                            <option value="<%= cat %>"><%= cat %></option>
+                        <% } %>
                     <% }); %>
-                <% } else { %>
-                    <option value="Daily Reflections">Daily Reflections</option>
                 <% } %>
-            </datalist>
+                <option value="__new__">+ Create New Category</option>
+            </select>
+            
+            <!-- Hidden input for custom category -->
+            <div id="customCategoryGroup" class="form-group" style="display: none; margin-top: 0.5rem;">
+                <input type="text" id="customCategory" placeholder="Enter new category name..." 
+                       style="margin-top: 0.5rem;">
+                <button type="button" id="addCategoryBtn" class="btn-secondary" style="margin-top: 0.5rem;">Add Category</button>
+                <button type="button" id="cancelCategoryBtn" class="btn-secondary" style="margin-top: 0.5rem;">Cancel</button>
+            </div>
+            
             <small class="form-hint">
                 <svg style="width: 1rem; height: 1rem; display: inline-block; vertical-align: middle; margin-right: 0.25rem;" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364-.707l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
                 </svg>
-                Type to create a new category or select an existing one
+                Select an existing category or create a new one
             </small>
         </div>
 
@@ -215,10 +224,60 @@
                 }
             });
         }
+
+        // Category dropdown functionality
+        const categorySelect = document.getElementById('categorySelect');
+        const customCategoryGroup = document.getElementById('customCategoryGroup');
+        const customCategoryInput = document.getElementById('customCategory');
+        const addCategoryBtn = document.getElementById('addCategoryBtn');
+        const cancelCategoryBtn = document.getElementById('cancelCategoryBtn');
+
+        categorySelect.addEventListener('change', function() {
+            if (this.value === '__new__') {
+                customCategoryGroup.style.display = 'block';
+                customCategoryInput.focus();
+            } else {
+                customCategoryGroup.style.display = 'none';
+            }
+        });
+
+        addCategoryBtn.addEventListener('click', function() {
+            const newCategory = customCategoryInput.value.trim();
+            if (newCategory) {
+                // Add new option to select (before the "Create New" option)
+                const newOption = document.createElement('option');
+                newOption.value = newCategory;
+                newOption.textContent = newCategory;
+                newOption.selected = true;
+                
+                // Insert before the last option (Create New Category)
+                const lastOption = categorySelect.lastElementChild;
+                categorySelect.insertBefore(newOption, lastOption);
+                
+                // Hide the custom input
+                customCategoryGroup.style.display = 'none';
+                customCategoryInput.value = '';
+            }
+        });
+
+        cancelCategoryBtn.addEventListener('click', function() {
+            customCategoryGroup.style.display = 'none';
+            customCategoryInput.value = '';
+            // Reset select to first option
+            categorySelect.selectedIndex = 0;
+        });
+
+        // Allow Enter key to add category
+        customCategoryInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                addCategoryBtn.click();
+            }
+        });
     </script>
     <div class="navbar">
     <a href="/" class="compose-button post-card">Return to Home</a>
         </div>
-<%-include("partials/footer") %>
+<%- include("partials/footer") %>
 </body>
 </html>

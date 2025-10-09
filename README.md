@@ -109,23 +109,36 @@ This application implements comprehensive security measures to protect against c
 
 ```
 BLOG WebApp/
-├── index.js                   # Main server file
-├── package.json               # Dependencies & scripts
-├── README.md                  # This documentation
+├── index.js                           # Main server file
+├── package.json                       # Dependencies & scripts  
+├── README.md                          # This documentation
+├── TECHNICAL_ARCHITECTURE.md          # Detailed technical documentation
+├── VISUAL_FLOW_DIAGRAMS.md           # ASCII diagrams and user flows
+├── vercel.json                        # Vercel deployment configuration
+├── test-security.js                   # Security testing utilities
 ├── models/
-│   └── Post.js                # MongoDB schema definition
-├── views/                     # EJS templates
-│   ├── index.ejs              # Homepage template
-│   ├── compose.ejs            # New post creation
-│   ├── posts.ejs              # Individual post view
-│   ├── edit.ejs               # Post editing interface
+│   └── Post.js                        # MongoDB schema definition
+├── views/                             # EJS templates
+│   ├── index.ejs                      # Homepage template
+│   ├── compose.ejs                    # New post creation form
+│   ├── posts.ejs                      # Individual post view
+│   ├── edit.ejs                       # Post editing interface
 │   └── partials/
-│       ├── header.ejs         # Shared header with navigation
-│       └── footer.ejs         # Shared footer
+│       ├── header.ejs                 # Shared header with navigation
+│       └── footer.ejs                 # Shared footer
 └── public/
     ├── styles/
-    │   └── main.css           # Application styling
-    └── images/                # Static assets
+    │   └── main.css                   # Application styling
+    ├── js/
+    │   ├── search-filter.js           # Search and filter functionality
+    │   └── theme-toggle.js            # Dark/light theme switching
+    ├── images/                        # Static demo images
+    │   ├── demo-home.png              # Homepage screenshot
+    │   ├── demo-edit-delete.png       # Edit/delete interface
+    │   ├── demo-compose.png           # Compose page screenshot
+    │   └── [other assets...]          # Various image assets
+    └── uploads/                       # User uploaded images
+        └── [timestamp-random].jpg     # Auto-generated secure filenames
 ```
 
 ## Tech Stack
