@@ -301,8 +301,8 @@ Running with in-memory storage - app fully functional!
 ### Development Setup
 ```bash
 # Fork the repository
-git clone https://github.com/niyidukunda/webDev.git
-cd webDev/Backend/BLOG-WebApp
+git clone https://github.com/Niyidukunda/express-blog-app.git
+cd express-blog-app
 
 # Create feature branch
 git checkout -b feature/your-feature-name
