@@ -29,6 +29,9 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const app = express();
 const port = process.env.PORT || 3000;
 
+// Trust proxy for Render deployment
+app.set('trust proxy', 1);
+
 // Security middleware
 app.use(helmet({
   contentSecurityPolicy: {
@@ -280,8 +283,9 @@ const sessionConfig = {
   secret: process.env.SESSION_SECRET || 'your-fallback-secret-key-change-in-production',
   resave: false,
   saveUninitialized: false,
+  proxy: true, // Trust the first proxy when secure: true
   cookie: {
-    secure: process.env.NODE_ENV === 'production', // Use secure cookies in production
+    secure: process.env.NODE_ENV === 'production', // Use secure cookies in production with proxy trust
     httpOnly: true, // Prevent XSS attacks via document.cookie
     maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days in milliseconds
     sameSite: 'lax' // CSRF protection
@@ -443,6 +447,9 @@ app.post("/login", [
           email: user.email,
           role: user.role
         };
+        
+        console.log(`✅ User logged in: ${user.username}, Session ID: ${req.sessionID}`);
+        console.log(`🍪 Cookie secure: ${sessionConfig.cookie.secure}, Environment: ${process.env.NODE_ENV}`);
         
         res.redirect('/');
       } catch (error) {
