@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up - Purpose & Perspective</title>
+    <link rel="stylesheet" href="/styles/main.css">
+</head>
+<body>
+    <%- include("partials/header") %>
+    
+    <div class="auth-container">
+        <div class="auth-card">
+            <div class="auth-header">
+                <h1>Join Our Community</h1>
+                <p>Create an account to share your perspectives and contribute to meaningful discussions</p>
+            </div>
+            
+            <% if (error) { %>
+                <div class="alert alert-error">
+                    <span class="alert-icon">⚠️</span>
+                    <%= error %>
+                </div>
+            <% } %>
+            
+            <% if (success) { %>
+                <div class="alert alert-success">
+                    <span class="alert-icon">✅</span>
+                    <%= success %>
+                </div>
+            <% } %>
+            
+            <form action="/signup" method="POST" class="auth-form">
+                <div class="form-group">
+                    <label for="username">Username</label>
+                    <input 
+                        type="text" 
+                        id="username" 
+                        name="username" 
+                        required 
+                        placeholder="Choose a unique username"
+                        pattern="[a-zA-Z0-9_]{3,30}"
+                        title="Username must be 3-30 characters long and contain only letters, numbers, and underscores"
+                        autocomplete="username"
+                    >
+                    <small class="form-hint">3-30 characters, letters, numbers, and underscores only</small>
+                </div>
+                
+                <div class="form-group">
+                    <label for="email">Email Address</label>
+                    <input 
+                        type="email" 
+                        id="email" 
+                        name="email" 
+                        required 
+                        placeholder="Enter your email address"
+                        autocomplete="email"
+                    >
+                    <small class="form-hint">We'll use this for account recovery and notifications</small>
+                </div>
+                
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input 
+                        type="password" 
+                        id="password" 
+                        name="password" 
+                        required 
+                        placeholder="Create a strong password"
+                        minlength="6"
+                        autocomplete="new-password"
+                    >
+                    <small class="form-hint">At least 6 characters long</small>
+                </div>
+                
+                <div class="form-group">
+                    <label for="confirmPassword">Confirm Password</label>
+                    <input 
+                        type="password" 
+                        id="confirmPassword" 
+                        name="confirmPassword" 
+                        required 
+                        placeholder="Confirm your password"
+                        minlength="6"
+                        autocomplete="new-password"
+                    >
+                </div>
+                
+                <button type="submit" class="auth-submit-btn">
+                    Create Account
+                </button>
+            </form>
+            
+            <div class="auth-footer">
+                <p>Already have an account? <a href="/login" class="auth-link">Sign in here</a></p>
+                
+                <% if (!isMongoConnected) { %>
+                    <div class="fallback-notice">
+                        <div class="fallback-icon">🔧</div>
+                        <h4>Offline Mode Active</h4>
+                        <p>The database is temporarily unavailable. Account registration is disabled, but you can use the demo account to explore the platform.</p>
+                        <a href="/login" class="demo-login-btn">Try Demo Account</a>
+                    </div>
+                <% } %>
+            </div>
+        </div>
+    </div>
+
+    <%- include("partials/footer") %>
+    
+    <script>
+        // Client-side password confirmation validation
+        document.getElementById('confirmPassword').addEventListener('input', function() {
+            const password = document.getElementById('password').value;
+            const confirmPassword = this.value;
+            
+            if (password !== confirmPassword) {
+                this.setCustomValidity('Passwords do not match');
+            } else {
+                this.setCustomValidity('');
+            }
+        });
+        
+        document.getElementById('password').addEventListener('input', function() {
+            const confirmPassword = document.getElementById('confirmPassword');
+            if (confirmPassword.value && this.value !== confirmPassword.value) {
+                confirmPassword.setCustomValidity('Passwords do not match');
+            } else {
+                confirmPassword.setCustomValidity('');
+            }
+        });
+    </script>
+</body>
+</html>

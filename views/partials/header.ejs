@@ -11,13 +11,13 @@
         <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
         </svg>
-        Home
+        HOME
       </a>
       <a href="/compose" class="nav-link <%= typeof currentPage !== 'undefined' && currentPage === 'compose' ? 'active' : '' %>">
         <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path>
         </svg>
-        Reflect
+        REFLECT
       </a>
     </div>
 
@@ -31,6 +31,39 @@
           </svg>
         </button>
       </div>
+      
+      <!-- Authentication Section -->
+      <% if (typeof isAuthenticated !== 'undefined' && isAuthenticated) { %>
+        <div class="user-menu">
+          <div class="user-info">
+            <span class="user-icon">👤</span>
+            <span class="username">Hello, <%= user && user.username ? user.username : 'User' %>!</span>
+          </div>
+          <form action="/logout" method="POST" class="logout-form">
+            <button type="submit" class="logout-btn" title="Logout">
+              <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+              </svg>
+              LOGOUT
+            </button>
+          </form>
+        </div>
+      <% } else { %>
+        <div class="auth-buttons">
+          <a href="/login" class="auth-btn login-btn">
+            <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"></path>
+            </svg>
+            LOGIN
+          </a>
+          <a href="/signup" class="auth-btn signup-btn">
+            <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path>
+            </svg>
+            SIGN UP
+          </a>
+        </div>
+      <% } %>
       
       <!-- Theme Toggle -->
       <button class="theme-toggle" id="themeToggleBtn" title="Toggle theme">
@@ -61,31 +94,17 @@
     </div>
   <% } %>
   
-  <!-- Enhanced Hero Section -->
+  <!-- Enhanced Hero Section with Earth Background -->
   <div class="hero">
+    <!-- Earth Background Section moved here -->
+    <div class="earth-section">
+      <div class="earth-background"></div>
+    </div>
     <div class="cloud-layer"></div>
     <div class="hero-content">
       <h1 class="hero-title">Purpose & Perspective</h1>
       <p class="hero-subtitle">Reflections from the journey of living with intention</p>
-      <div class="hero-stats">
-        <span class="stat-item">
-          <svg class="stat-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-          </svg>
-          <span class="stat-text"><%= typeof posts !== 'undefined' ? posts.length : 0 %> Reflections</span>
-        </span>
-        <% if (typeof posts !== 'undefined' && posts.length > 0) { %>
-          <% const categories = [...new Set(posts.map(post => post.category))]; %>
-          <span class="stat-item">
-            <svg class="stat-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
-            </svg>
-            <span class="stat-text"><%= categories.length %> Categories</span>
-          </span>
-        <% } %>
-      </div>
     </div>
-    <div class="hero-background"></div>
   </div>
 
   <!-- Category Filter Bar -->

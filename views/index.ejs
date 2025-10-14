@@ -9,10 +9,89 @@
 <body>
     <%- include("partials/header") %>
     
-        <a class="compose-button compose-link " href="/compose">Create</a>
+    <% if (typeof req !== 'undefined' && req.query && req.query['admin-created'] === 'true') { %>
+      <div class="admin-success-banner">
+        <div class="admin-success-content">
+          <h2>🎉 Welcome, Admin!</h2>
+          <p>Your admin account has been successfully created. You now have full access to manage Purpose & Perspective!</p>
+          <small>The admin setup page has been automatically disabled for security.</small>
+        </div>
+      </div>
+    <% } %>
+    
+    <% if (typeof req !== 'undefined' && req.query && req.query['signup-success'] === 'true') { %>
+      <div class="signup-success-banner">
+        <div class="signup-success-content">
+          <h2>🎉 Welcome to Purpose & Perspective!</h2>
+          <p>Your account has been created successfully and you're now logged in. Start exploring and sharing your perspectives!</p>
+          <small>You can now compose posts, participate in discussions, and contribute to our community.</small>
+        </div>
+      </div>
+    <% } %>
+    
+    <% if (typeof req !== 'undefined' && req.query && req.query['promoted-to-admin'] === 'true') { %>
+      <div class="admin-success-banner">
+        <div class="admin-success-content">
+          <h2>👑 Admin Access Granted!</h2>
+          <p>You've been successfully promoted to admin! You now have full control over Purpose & Perspective.</p>
+          <small>You can edit, delete, and manage all content on the blog.</small>
+        </div>
+      </div>
+    <% } %>
+    
+    <!-- Welcome & Purpose Section -->
+    <div class="intro-section">
+        <div class="intro-content">
+            <div class="intro-text">
+                <div class="author-intro">
+                    <h2>Welcome to My Digital Space</h2>
+                    <p class="intro-main">I'm <strong>Fidele Niyidukunda</strong>, and this is where I share my <strong>life perspectives</strong>, <strong>meaningful experiences</strong>, and <strong>innovative IT solutions</strong> as they unfold through my journey.</p>
+                </div>
+                
+                <p class="intro-description">This blog serves as both my personal reflection journal and a collaborative hub for technological innovation. Here you'll find:</p>
+                
+                <div class="purpose-grid">
+                    <div class="purpose-item">
+                        <svg class="purpose-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m-6 3l6-3"></path>
+                        </svg>
+                        <h3>Life Perspectives</h3>
+                        <p>Insights on living with intention, finding purpose, and navigating life's complexities</p>
+                    </div>
+                    <div class="purpose-item">
+                        <svg class="purpose-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path>
+                        </svg>
+                        <h3>IT Solutions</h3>
+                        <p>Innovative project ideas, technical explorations, and solutions I'm planning to develop</p>
+                    </div>
+                    <div class="purpose-item">
+                        <svg class="purpose-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                        </svg>
+                        <h3>Community Collaboration</h3>
+                        <p>A space for sharing ideas, suggestions, and building together</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Posts Section -->
+    <div class="posts-section">
+        <div class="section-header">
+            <h2>Recent Reflections</h2>
+            <a class="compose-button compose-link" href="/compose">Create</a>
+        </div>
         <% if (posts.length === 0) { %>
-            <p>No reflections yet!</p> <a class="compose-button" href="/compose">Share your first thought</a>
+            <div class="empty-state">
+                <div class="empty-icon">📝</div>
+                <h3>No reflections yet!</h3>
+                <p>Be the first to share your thoughts and ideas with the community.</p>
+                <a class="compose-button" href="/compose">Share your first thought</a>
+            </div>
         <% } else { %>
+            <div class="posts-grid">
             <% posts.forEach(function(post) { %>
             <div class="post-card">
                 <% if (post.featuredImage) { %>
@@ -30,24 +109,23 @@
                     <p class="post-preview"><%= post.body.substring(0, 150) %>...</p>
                     
                     <div class="post-meta">
-                        <small>📅 <%= new Date(post.createdAt).toLocaleDateString('en-US', { 
-                            year: 'numeric', 
-                            month: 'long', 
-                            day: 'numeric' 
-                        }) %></small>
+                        <small>
+                            <% if (post.authorName) { %>� <%= post.authorName %> • <% } %>
+                            �📅 <%= new Date(post.createdAt).toLocaleDateString('en-US', { 
+                                year: 'numeric', 
+                                month: 'long', 
+                                day: 'numeric' 
+                            }) %>
+                        </small>
                     </div>
                 </div>
             </div>
             <% }); %>
+            </div>
         <% } %>
+    </div>
 
-   
-
-
-
-
-
- <%- include("partials/footer") %>
+    <%- include("partials/footer") %>
 
 
 </body>

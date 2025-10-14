@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Purpose & Perspective</title>
+    <link rel="stylesheet" href="/styles/main.css">
+</head>
+<body>
+    <%- include("partials/header") %>
+    
+    <div class="auth-container">
+        <div class="auth-card">
+            <div class="auth-header">
+                <h1>Welcome Back</h1>
+                <p>Sign in to your account to continue sharing and creating content</p>
+            </div>
+            
+            <% if (error) { %>
+                <div class="alert alert-error">
+                    <span class="alert-icon">⚠️</span>
+                    <%= error %>
+                </div>
+            <% } %>
+            
+            <form action="/login" method="POST" class="auth-form">
+                <div class="form-group">
+                    <label for="usernameOrEmail">Username or Email</label>
+                    <input 
+                        type="text" 
+                        id="usernameOrEmail" 
+                        name="usernameOrEmail" 
+                        required 
+                        placeholder="Enter your username or email"
+                        autocomplete="username"
+                    >
+                </div>
+                
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input 
+                        type="password" 
+                        id="password" 
+                        name="password" 
+                        required 
+                        placeholder="Enter your password"
+                        autocomplete="current-password"
+                    >
+                </div>
+                
+                <button type="submit" class="auth-submit-btn">
+                    Sign In
+                </button>
+            </form>
+            
+            <div class="auth-footer">
+                <p>Don't have an account? <a href="/signup" class="auth-link">Sign up here</a></p>
+                
+                <% if (!isMongoConnected) { %>
+                    <div class="fallback-notice">
+                        <div class="fallback-icon">🔧</div>
+                        <h4>Offline Mode Active</h4>
+                        <p>The database is temporarily unavailable. You can still log in using the demo account:</p>
+                        <div class="demo-credentials">
+                            <strong>Username:</strong> admin<br>
+                            <strong>Password:</strong> admin123
+                        </div>
+                    </div>
+                <% } %>
+            </div>
+        </div>
+    </div>
+
+    <%- include("partials/footer") %>
+</body>
+</html>

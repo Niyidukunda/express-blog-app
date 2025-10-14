@@ -39,6 +39,16 @@ const postSchema = new mongoose.Schema({
     type: Number, // Estimated reading time in minutes
     default: 1 
   },
+  author: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true
+  },
+  authorName: {
+    type: String,
+    required: true,
+    trim: true
+  },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now }
 });
